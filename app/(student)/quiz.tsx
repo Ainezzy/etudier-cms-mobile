@@ -44,7 +44,7 @@ export default function Page() {
   return (
     <SafeAreaView className="flex-1 bg-white p-4 gap-4">
       <View className="flex-row justify-between items-center">
-        <View className="flex-row gap-4 items-center">
+        <View className="flex-row gap-4 mt-8 p-6 items-center">
           <MaterialIcons
             name="arrow-back"
             size={24}
@@ -60,7 +60,7 @@ export default function Page() {
         </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4">
+      <ScrollView contentContainerClassName="gap-4 p-6">
         {data.map((quiz: any) => (
           <Pressable
             key={quiz.id}

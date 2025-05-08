@@ -19,53 +19,44 @@ export default function Page() {
   const { instance, setUserRecord, user_record } = usePocketBase();
 
   const [name, setName] = useState(user_record ? user_record!.name : null);
-  const [school, setSchool] = useState(
-    user_record ? user_record!.school : null
-  );
-  const [department, setDepartment] = useState(
-    user_record ? user_record!.department : null
-  );
-  const [yearLevel, setYearLevel] = useState(
-    user_record ? user_record!.year_level : null
-  );
-  const [course, setCourse] = useState(
-    user_record ? user_record!.course : null
-  );
-  const [gender, setGender] = useState(
-    user_record ? user_record!.gender : null
-  );
-  const [phoneNumber, setPhoneNumber] = useState(
-    user_record ? user_record!.phone_number : null
-  );
+  const [school, setSchool] = useState(user_record ? user_record!.school : null);
+  const [department, setDepartment] = useState(user_record ? user_record!.department : null);
+  const [yearLevel, setYearLevel] = useState(user_record ? user_record!.year_level : null);
+  const [course, setCourse] = useState(user_record ? user_record!.course : null);
+  const [gender, setGender] = useState(user_record ? user_record!.gender : null);
+  const [phoneNumber, setPhoneNumber] = useState(user_record ? user_record!.phone_number : null);
+  const [dateOfBirth, setDateOfBirth] = useState(user_record ? user_record!.date_of_birth : null);
 
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
     try {
+      // Format dateOfBirth to exclude time
+      const formattedDateOfBirth = dateOfBirth ? new Date(dateOfBirth).toISOString().split('T')[0] : null;
+
       const data = await instance?.collection("users").update(user_record!.id, {
-        name: name,
-        school: school,
-        department: department,
-        course: course,
-        gender: gender,
+        name,
+        school,
+        department,
+        course,
+        gender,
         phone_number: phoneNumber,
         year_level: yearLevel,
+        date_of_birth: formattedDateOfBirth, // use formatted date without time
       });
 
       setUserRecord(data);
       ToastAndroid.show("Updated!", ToastAndroid.SHORT);
       router.back();
-    } catch (err) {
-      ToastAndroid.show(
-        `Error on updating profile: ${err}`,
-        ToastAndroid.SHORT
-      );
+    } catch (err: any) {
+      const errorMessage = err?.message || "Something went wrong while updating your profile.";
+      ToastAndroid.show(`Error: ${errorMessage}`, ToastAndroid.SHORT);
     }
   };
 
   return (
     <SafeAreaView className="flex-1 gap-4 p-6 bg-white">
-      <View className="flex-row gap-4 items-center">
+      <View className="flex-row gap-4 mt-8 p-6 items-center">
         <MaterialIcons
           name="arrow-back"
           size={24}
@@ -79,12 +70,11 @@ export default function Page() {
           Edit
         </Text>
       </View>
-      <View className="gap-2 flex-1">
+
+      <View className="gap-4 flex-1 p-6">
+        {/* Name */}
         <View className="gap-1">
-          <Text
-            className="text-lg text-gray-400"
-            style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}
-          >
+          <Text className="text-lg text-gray-400" style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}>
             Name
           </Text>
           <TextInput
@@ -95,11 +85,25 @@ export default function Page() {
             onChangeText={setName}
           />
         </View>
+
+        {/* Date of Birth */}
         <View className="gap-1">
-          <Text
-            className="text-lg text-gray-400"
+          <Text className="text-lg text-gray-400" style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}>
+            Date of Birth
+          </Text>
+          <TextInput
+            className="px-6 py-4 bg-gray-100 text-[#242424] rounded-2xl"
             style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}
-          >
+            placeholder="YYYY-MM-DD"
+            value={dateOfBirth}
+            onChangeText={setDateOfBirth}
+            keyboardType="numeric"
+          />
+        </View>
+
+        {/* School */}
+        <View className="gap-1">
+          <Text className="text-lg text-gray-400" style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}>
             School
           </Text>
           <TextInput
@@ -110,11 +114,10 @@ export default function Page() {
             onChangeText={setSchool}
           />
         </View>
+
+        {/* Department */}
         <View className="gap-1">
-          <Text
-            className="text-lg text-gray-400"
-            style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}
-          >
+          <Text className="text-lg text-gray-400" style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}>
             Department
           </Text>
           <TextInput
@@ -125,11 +128,10 @@ export default function Page() {
             onChangeText={setDepartment}
           />
         </View>
+
+        {/* Phone Number */}
         <View className="gap-1">
-          <Text
-            className="text-lg text-gray-400"
-            style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}
-          >
+          <Text className="text-lg text-gray-400" style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}>
             Phone number
           </Text>
           <TextInput
@@ -138,118 +140,58 @@ export default function Page() {
             placeholder="Phone number"
             value={phoneNumber}
             onChangeText={setPhoneNumber}
+            keyboardType="phone-pad"
             maxLength={10}
           />
         </View>
+
+        {/* Gender */}
         <View className="gap-1">
-          <Text
-            className="text-lg text-gray-400"
-            style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}
-          >
+          <Text className="text-lg text-gray-400" style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}>
             Gender
           </Text>
-          <RadioGroup
-            value={gender}
-            onChange={(e) => {
-              setGender(e);
-            }}
-            className="flex flex-row gap-4"
-          >
-            <Radio
-              value="Male"
-              size="md"
-              isInvalid={false}
-              isDisabled={false}
-              className="flex-1 p-4 bg-gray-100 rounded-3xl"
-            >
-              <RadioIndicator>
-                <RadioIcon />
-              </RadioIndicator>
+          <RadioGroup value={gender} onChange={setGender} className="flex flex-row gap-4">
+            <Radio value="Male" className="flex-1 p-4 bg-gray-100 rounded-3xl">
+              <RadioIndicator><RadioIcon /></RadioIndicator>
               <RadioLabel>Male</RadioLabel>
             </Radio>
-            <Radio
-              value="Female"
-              size="md"
-              isInvalid={false}
-              isDisabled={false}
-              className="flex-1 p-4 bg-gray-100 rounded-3xl"
-            >
-              <RadioIndicator>
-                <RadioIcon />
-              </RadioIndicator>
+            <Radio value="Female" className="flex-1 p-4 bg-gray-100 rounded-3xl">
+              <RadioIndicator><RadioIcon /></RadioIndicator>
               <RadioLabel>Female</RadioLabel>
             </Radio>
           </RadioGroup>
         </View>
+
+        {/* Year Level */}
         <View className="gap-1">
-          <Text
-            className="text-lg text-gray-400"
-            style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}
-          >
+          <Text className="text-lg text-gray-400" style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}>
             Year Level
           </Text>
-          <RadioGroup
-            onChange={(e) => {
-              setYearLevel(e);
-            }}
-            className="flex flex-row gap-4"
-            value={yearLevel}
-          >
-            <Radio
-              value="1"
-              size="md"
-              isInvalid={false}
-              isDisabled={false}
-              className="flex-1 p-4 bg-gray-100 rounded-3xl"
-            >
-              <RadioIndicator>
-                <RadioIcon />
-              </RadioIndicator>
+          <RadioGroup value={yearLevel} onChange={setYearLevel} className="flex flex-row gap-4">
+            <Radio value="1" className="flex-1 p-4 bg-gray-100 rounded-3xl">
+              <RadioIndicator><RadioIcon /></RadioIndicator>
               <RadioLabel>1st</RadioLabel>
             </Radio>
-            <Radio
-              value="2"
-              size="md"
-              isInvalid={false}
-              isDisabled={false}
-              className="flex-1 p-4 bg-gray-100 rounded-3xl"
-            >
-              <RadioIndicator>
-                <RadioIcon />
-              </RadioIndicator>
+            <Radio value="2" className="flex-1 p-4 bg-gray-100 rounded-3xl">
+              <RadioIndicator><RadioIcon /></RadioIndicator>
               <RadioLabel>2nd</RadioLabel>
             </Radio>
-            <Radio
-              value="3"
-              size="md"
-              isInvalid={false}
-              isDisabled={false}
-              className="flex-1 p-4 bg-gray-100 rounded-3xl"
-            >
-              <RadioIndicator>
-                <RadioIcon />
-              </RadioIndicator>
+            <Radio value="3" className="flex-1 p-4 bg-gray-100 rounded-3xl">
+              <RadioIndicator><RadioIcon /></RadioIndicator>
               <RadioLabel>3rd</RadioLabel>
             </Radio>
-            <Radio
-              value="4"
-              size="md"
-              isInvalid={false}
-              isDisabled={false}
-              className="flex-1 p-4 bg-gray-100 rounded-3xl"
-            >
-              <RadioIndicator>
-                <RadioIcon />
-              </RadioIndicator>
+            <Radio value="4" className="flex-1 p-4 bg-gray-100 rounded-3xl">
+              <RadioIndicator><RadioIcon /></RadioIndicator>
               <RadioLabel>4th</RadioLabel>
             </Radio>
           </RadioGroup>
         </View>
       </View>
+
       <Pressable
         disabled={isSaving}
         onPress={handleSave}
-        className="p-4 bg-gray-100 border border-gray-300 shadow disabled:bg-green-300 rounded-3xl text-center"
+        className="p-4 mb-10 m-6 bg-gray-100 border border-gray-300 shadow disabled:bg-green-300 rounded-3xl text-center"
       >
         <Text
           style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}

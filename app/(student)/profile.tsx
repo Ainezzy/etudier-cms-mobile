@@ -11,31 +11,40 @@ export default function Page() {
   const { user_record, instance, setUserRecord } = usePocketBase();
 
   const { data } = useQuery({
-    queryKey: ["student_profile", user_record ? user_record!.id : "user_id"],
-    queryFn: async () => {
-      try {
-        const modules_progress = await instance!
-          .collection("users_modules_progress")
-          .getList(1, 5, {
-            filter: `user_id = '${user_record!.id}'`,
-            expand: "module_id",
-          });
+  queryKey: ["student_profile", user_record ? user_record.id : "user_id"],
+  queryFn: async () => {
+    if (!user_record) return { modules_progress: [], quiz_progress: [] };
 
-        const quiz_progress = await instance!
-          .collection("users_quiz_submissions")
-          .getList(1, 5, {
-            filter: `user_id = '${user_record!.id}'`,
-            expand: "quiz_id",
-          });
+    try {
+      const modules_progress = await instance!
+        .collection("users_modules_progress")
+        .getList(1, 5, {
+          filter: `user_id = '${user_record.id}'`,
+          expand: "module_id",
+        });
 
-        return {
-          modules_progress: modules_progress.items,
-          quiz_progress: quiz_progress.items,
-        };
-      } catch (err) {}
-    },
-    refetchOnWindowFocus: false,
-  });
+      const quiz_progress = await instance!
+        .collection("users_quiz_submissions")
+        .getList(1, 5, {
+          filter: `user_id = '${user_record.id}'`,
+          expand: "quiz_id",
+        });
+
+      return {
+        modules_progress: modules_progress.items,
+        quiz_progress: quiz_progress.items,
+      };
+    } catch (err) {
+      console.error("Query error:", err);
+      return {
+        modules_progress: [],
+        quiz_progress: [],
+      }; // or you can `throw err` if you want to trigger React Query error states
+    }
+  },
+  enabled: !!user_record, // prevents query from running with undefined user_record
+  refetchOnWindowFocus: false,
+});
 
   const handleLogout = async () => {
     await instance?.authStore.clear();
@@ -52,9 +61,9 @@ export default function Page() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white p-6 gap-4">
+    <SafeAreaView className="flex-1 bg-white p-6 gap-10">
       <View className="flex-row items-center justify-between">
-        <View className="flex-row gap-4 items-center">
+        <View className="flex-row gap-4 mt-8 p-6 items-center">
           <MaterialIcons
             name="arrow-back"
             size={24}
@@ -68,7 +77,7 @@ export default function Page() {
             Profile
           </Text>
         </View>
-        <View className="flex flex-row gap-4 items-center">
+        <View className="flex flex-row gap-4 mt-8 p-6 items-center">
           <MaterialIcons
             name="edit"
             size={24}
@@ -81,19 +90,22 @@ export default function Page() {
             color={"#242424"}
             onPress={handleLogout}
           />
+          </View>
         </View>
-      </View>
 
-      <View className="gap-2">
+      <View className="gap-4 p-6">
         <View className="flex flex-row gap-4 items-center">
           <MaterialIcons name="account-circle" size={48} color={"#242424"} />
           <View>
+            {/* NAME */}
             <Text
               style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}
               className="text-xl"
             >
               {user_record!.name}
             </Text>
+
+            {/* SCHOOL */}
             <Text
               style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}
               className="text-sm text-gray-400"
@@ -116,36 +128,62 @@ export default function Page() {
           </View>
         </View>
         <View>
-          <Text
-            style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}
-            className="text-sm text-gray-400"
-          >
-            {user_record!.department}
+          {/* ADDITIONAL DETAILS */}
+          <Text className="text-sm mt-2">
+            <Text style={{ fontFamily: WorkSansFonts.WorkSans_700Bold }}>
+              Gender:{" "}
+            </Text>
+            <Text style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }} className="text-gray-600">
+              {user_record!.gender}
+            </Text>
           </Text>
-          <Text
-            style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}
-            className="text-sm text-gray-400"
-          >
-            {user_record!.course}
+          <Text className="text-sm mt-2">
+            <Text style={{ fontFamily: WorkSansFonts.WorkSans_700Bold }}>
+              Email:{" "}
+            </Text>
+            <Text style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }} className="text-gray-600">
+              {user_record!.email}
+            </Text>
           </Text>
-          <Text
-            style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}
-            className="text-sm text-gray-400"
-          >
-            +63 - {user_record!.phone_number}
+          <Text className="text-sm mt-2">
+            <Text style={{ fontFamily: WorkSansFonts.WorkSans_700Bold }}>
+              Phone Number:{" "}
+            </Text>
+            <Text style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }} className="text-gray-600">
+              +63 - {user_record!.phone_number}
+            </Text>
           </Text>
-          <Text
-            style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }}
-            className="text-sm text-gray-400"
-          >
-            {user_record!.gender}
+          <Text className="text-sm mt-2">
+            <Text style={{ fontFamily: WorkSansFonts.WorkSans_700Bold }}>
+              Date Of Birth:{" "}
+            </Text>
+            <Text style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }} className="text-gray-600">
+              {user_record!.date_of_birth}
+            </Text>
+          </Text>
+
+          <Text className="text-sm mt-2">
+            <Text style={{ fontFamily: WorkSansFonts.WorkSans_700Bold }}>
+              Department:{" "}
+            </Text>
+            <Text style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }} className="text-gray-600">
+              {user_record!.department}
+            </Text>
+          </Text>
+          <Text className="text-sm mt-2">
+            <Text style={{ fontFamily: WorkSansFonts.WorkSans_700Bold }}>
+              Course:{" "}
+            </Text>
+            <Text style={{ fontFamily: WorkSansFonts.WorkSans_400Regular }} className="text-gray-600">
+              {user_record!.course}
+            </Text>
           </Text>
         </View>
       </View>
 
       <Text
         style={{ fontFamily: WorkSansFonts.WorkSans_700Bold }}
-        className="text-2xl"
+        className="text-2xl p-6"
       >
         Recent activities
       </Text>
